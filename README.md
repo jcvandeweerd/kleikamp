@@ -1,36 +1,81 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🏡 Kleikamp 10 - Family App
 
-## Getting Started
+Family dashboard to build our dream home together — a roadmap app with timeline, kanban and list views.
 
-First, run the development server:
+## Tech stack
+
+- **Next.js 16** (App Router, Turbopack)
+- **React 19**, TypeScript (strict)
+- **Tailwind CSS v4** + shadcn/ui
+- **Supabase** (Auth, Postgres, RLS)
+- **Zod** for server action validation
+
+## Getting started
+
+### 1. Install dependencies
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Set up Supabase
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Create a project on [supabase.com](https://supabase.com)
+2. Copy `.env.local.example` to `.env.local` and fill in the values:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+ADMIN_EMAILS=your@email.com
+```
 
-## Learn More
+3. Run the SQL in the **Supabase SQL Editor**:
+   - `supabase/migrations/00001_initial_schema.sql` — for a fresh database
+   - `supabase/migrations/00002_invites_and_surname.sql` — only if the first migration was already applied
 
-To learn more about Next.js, take a look at the following resources:
+4. **Recommended**: Disable email confirmation in Supabase Dashboard → Authentication → Providers → Email → Toggle off "Confirm email"
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 3. Run
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+pnpm dev
+```
 
-## Deploy on Vercel
+Open [http://localhost:3000](http://localhost:3000). The first user can create an admin account without an invite.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Features
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Roadmap** — timeline (week/month), kanban and list views
+- **Sorting** — by title, date, status, tags or owner
+- **Item management** — create, edit, change status, delete
+- **Comments** — comment thread per item
+- **Audit log** — automatic activity feed
+- **Auth** — email + password registration, password reset
+- **Invites** — admins invite family members via unique link
+- **Role management** — admin or family, configurable via admin panel
+- **Dutch UI** — fully translated
+
+## Project structure
+
+```
+app/
+  auth/login/          # Login page
+  auth/register/       # Registration (via invite link)
+  auth/reset-password/ # Set password
+  auth/callback/       # OAuth/magic link callback
+  dashboard/           # Main dashboard
+  dashboard/admin/     # Family management (admin-only)
+components/
+  admin/               # Admin panel components
+  roadmap/             # Dashboard, views, drawers, dialogs
+  ui/                  # shadcn/ui components
+lib/
+  actions/             # Server actions (roadmap CRUD, admin)
+  supabase/            # Supabase clients, types, queries
+supabase/
+  migrations/          # SQL migrations
+```
+
+## Deployment
+
+Deploy via [Vercel](https://vercel.com) — set the environment variables in the Vercel dashboard.

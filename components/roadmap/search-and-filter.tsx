@@ -31,7 +31,7 @@ export function SearchAndFilter({
         value={search}
         onChange={(e) => onSearchChange(e.target.value)}
         className="h-9 sm:max-w-[260px]"
-        aria-label="Zoek in routekaart"
+        aria-label="Zoek in app"
       />
       <Select
         value={statusFilter}

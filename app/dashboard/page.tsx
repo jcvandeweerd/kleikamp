@@ -8,7 +8,7 @@ import { ensureProfile } from "@/lib/supabase/ensure-profile";
 import { getItems, getRecentEvents } from "@/lib/supabase/queries";
 
 export const metadata = {
-  title: "Dashboard · Kleikamp Routekaart",
+  title: "Dashboard · Kleikamp 10 · Family App",
   description: "Overzicht van onze familieroutekaart voor de nieuwbouw",
 };
 
@@ -30,10 +30,10 @@ export default async function DashboardPage() {
           </span>
           <div>
             <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
-              Kleikamp Family HQ
+              Kleikamp 10 - Family App
             </h1>
             <p className="text-muted-foreground text-sm">
-              Ons nieuwe huis krijgt vorm — we bouwen dit samen! 💪
+              Ons nieuwe huis krijgt vorm - we bouwen dit samen! 💪
             </p>
           </div>
         </div>

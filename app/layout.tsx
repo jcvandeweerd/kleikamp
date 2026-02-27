@@ -8,7 +8,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Kleikamp · Nieuwbouw Routekaart",
+  title: "Kleikamp 10 · Family App",
   description: "Ons familiedashboard om samen ons droomhuis te bouwen.",
 };
 

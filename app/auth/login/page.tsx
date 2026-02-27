@@ -65,7 +65,7 @@ export default function LoginPage() {
           </div>
           <CardTitle className="text-xl">Kleikamp Family HQ</CardTitle>
           <CardDescription>
-            Log in om de routekaart te openen.
+            Log in om de app te openen.
           </CardDescription>
         </CardHeader>
 

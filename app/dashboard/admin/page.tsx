@@ -3,7 +3,7 @@ import { ensureProfile } from "@/lib/supabase/ensure-profile";
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "Beheer · Kleikamp Routekaart",
+  title: "Beheer · Kleikamp 10 Admin · Family App",
   description: "Beheer familieleden en uitnodigingen",
 };
 

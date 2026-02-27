@@ -23,8 +23,9 @@ import {
   STATUS_LABELS,
   type RoadmapItem,
 } from "@/lib/types";
+import { isoToLocal, plusOneHour } from "@/lib/date-utils";
 import { useRouter } from "next/navigation";
-import { useCallback, useState, useTransition } from "react";
+import { useCallback, useRef, useState, useTransition } from "react";
 
 interface EditItemDialogProps {
   item: RoadmapItem;
@@ -36,6 +37,17 @@ export function EditItemDialog({ item, open, onOpenChange }: EditItemDialogProps
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const endRef = useRef<HTMLInputElement>(null);
+
+  const handleStartChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = e.target.value;
+      if (val && endRef.current && !endRef.current.value) {
+        endRef.current.value = plusOneHour(val);
+      }
+    },
+    [],
+  );
 
   const handleSubmit = useCallback(
     (e: React.FormEvent<HTMLFormElement>) => {
@@ -121,8 +133,9 @@ export function EditItemDialog({ item, open, onOpenChange }: EditItemDialogProps
               <Input
                 id="edit-start"
                 name="start_date"
-                type="date"
-                defaultValue={item.start_date ?? ""}
+                type="datetime-local"
+                defaultValue={isoToLocal(item.start_date)}
+                onChange={handleStartChange}
                 className="text-sm"
               />
             </div>
@@ -133,8 +146,9 @@ export function EditItemDialog({ item, open, onOpenChange }: EditItemDialogProps
               <Input
                 id="edit-end"
                 name="end_date"
-                type="date"
-                defaultValue={item.end_date ?? ""}
+                type="datetime-local"
+                defaultValue={isoToLocal(item.end_date)}
+                ref={endRef}
                 className="text-sm"
               />
             </div>

@@ -1,6 +1,7 @@
 "use server";
 
 import { createServerClient } from "@/lib/supabase/server";
+import { localToISO } from "@/lib/date-utils";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import type { Status } from "@/lib/types";
@@ -76,8 +77,8 @@ export async function createItem(formData: FormData) {
   const parsed = CreateItemSchema.safeParse({
     title: formData.get("title"),
     description: formData.get("description") ?? "",
-    start_date: formData.get("start_date") || null,
-    end_date: formData.get("end_date") || null,
+    start_date: localToISO(formData.get("start_date") as string | null),
+    end_date: localToISO(formData.get("end_date") as string | null),
     status: formData.get("status") ?? "planned",
     tags: formData.get("tags")
       ? String(formData.get("tags"))
@@ -116,8 +117,8 @@ export async function updateItem(id: string, formData: FormData) {
   const parsed = UpdateItemSchema.safeParse({
     title: formData.get("title") || undefined,
     description: formData.get("description") !== null ? String(formData.get("description")) : undefined,
-    start_date: formData.has("start_date") ? formData.get("start_date") || null : undefined,
-    end_date: formData.has("end_date") ? formData.get("end_date") || null : undefined,
+    start_date: formData.has("start_date") ? localToISO(formData.get("start_date") as string | null) : undefined,
+    end_date: formData.has("end_date") ? localToISO(formData.get("end_date") as string | null) : undefined,
     status: formData.get("status") || undefined,
     tags: formData.has("tags")
       ? String(formData.get("tags"))

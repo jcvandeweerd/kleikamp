@@ -19,14 +19,26 @@ import {
 } from "@/components/ui/sheet";
 import { createItem } from "@/lib/actions/roadmap";
 import { STATUS_EMOJI, STATUS_OPTIONS, STATUS_LABELS } from "@/lib/types";
+import { plusOneHour } from "@/lib/date-utils";
 import { useRouter } from "next/navigation";
-import { useCallback, useState, useTransition } from "react";
+import { useCallback, useRef, useState, useTransition } from "react";
 
 export function AddItemDialog() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const endRef = useRef<HTMLInputElement>(null);
+
+  const handleStartChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = e.target.value;
+      if (val && endRef.current && !endRef.current.value) {
+        endRef.current.value = plusOneHour(val);
+      }
+    },
+    [],
+  );
 
   const handleSubmit = useCallback(
     (e: React.FormEvent<HTMLFormElement>) => {
@@ -122,13 +134,25 @@ export function AddItemDialog() {
               <label htmlFor="add-start" className="text-xs font-medium">
                 Startdatum
               </label>
-              <Input id="add-start" name="start_date" type="date" className="text-sm" />
+              <Input
+                id="add-start"
+                name="start_date"
+                type="datetime-local"
+                onChange={handleStartChange}
+                className="text-sm"
+              />
             </div>
             <div className="space-y-1.5">
               <label htmlFor="add-end" className="text-xs font-medium">
                 Einddatum
               </label>
-              <Input id="add-end" name="end_date" type="date" className="text-sm" />
+              <Input
+                id="add-end"
+                name="end_date"
+                type="datetime-local"
+                ref={endRef}
+                className="text-sm"
+              />
             </div>
           </div>
 
