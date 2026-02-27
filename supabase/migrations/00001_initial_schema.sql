@@ -231,3 +231,6 @@ create index events_item_id_idx on public.events (item_id);
 create index events_created_at_idx on public.events (created_at desc);
 create index invites_token_idx on public.invites (token);
 create index invites_email_idx on public.invites (email);
+
+-- ── Realtime ─────────────────────────────────────────────────
+alter publication supabase_realtime add table public.roadmap_items;

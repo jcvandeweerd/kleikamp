@@ -9,30 +9,111 @@ import { SearchAndFilter } from "@/components/roadmap/search-and-filter";
 import { TimelineView } from "@/components/roadmap/timeline-view";
 import { ViewSwitcher } from "@/components/roadmap/view-switcher";
 import { setStatus as setStatusAction } from "@/lib/actions/roadmap";
+import { createBrowserClient } from "@/lib/supabase/client";
 import type { RoadmapItem, Status, ViewMode } from "@/lib/types";
-import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 
 interface DashboardClientProps {
   initialItems: RoadmapItem[];
 }
 
 export function DashboardClient({ initialItems }: DashboardClientProps) {
-  const router = useRouter();
-
   // ── State ──────────────────────────────────
   const [items, setItems] = useState(initialItems);
   const [view, setView] = useState<ViewMode>("timeline");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
-  const [selectedItem, setSelectedItem] = useState<RoadmapItem | null>(null);
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
+  // Derive selectedItem from the items array so it auto-updates
+  const selectedItem = useMemo(
+    () => (selectedItemId ? items.find((i) => i.id === selectedItemId) ?? null : null),
+    [items, selectedItemId],
+  );
+
   // Sync when server re-renders with new data
-  if (initialItems !== items && initialItems.length !== items.length) {
+  useEffect(() => {
     setItems(initialItems);
-  }
+  }, [initialItems]);
+
+  // ── Realtime subscription ──────────────────
+  useEffect(() => {
+    const supabase = createBrowserClient();
+
+    const channel = supabase
+      .channel("roadmap-items-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "roadmap_items" },
+        async (payload) => {
+          if (payload.eventType === "UPDATE") {
+            // Merge changed columns, preserve the joined profile
+            const row = payload.new as Record<string, unknown>;
+            setItems((prev) =>
+              prev.map((item) => {
+                if (item.id !== row.id) return item;
+                return {
+                  ...item,
+                  title: row.title as string,
+                  description: row.description as string,
+                  start_date: (row.start_date as string) ?? undefined,
+                  end_date: (row.end_date as string) ?? undefined,
+                  status: row.status as Status,
+                  tags: row.tags as string[],
+                  updated_at: row.updated_at as string,
+                };
+              }),
+            );
+          } else if (payload.eventType === "INSERT") {
+            // Fetch full item with profile join
+            const newId = (payload.new as { id: string }).id;
+            const { data } = await supabase
+              .from("roadmap_items")
+              .select("*, profiles:created_by(id, name, surname, avatar_url)")
+              .eq("id", newId)
+              .single();
+
+            if (data) {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const row = data as any;
+              const newItem: RoadmapItem = {
+                id: row.id,
+                title: row.title,
+                description: row.description,
+                start_date: row.start_date ?? undefined,
+                end_date: row.end_date ?? undefined,
+                status: row.status as Status,
+                tags: row.tags,
+                created_by: {
+                  id: row.profiles?.id ?? row.created_by,
+                  name: row.profiles?.name ?? "Unknown",
+                  surname: row.profiles?.surname ?? "",
+                  avatar_url: row.profiles?.avatar_url ?? undefined,
+                },
+                created_at: row.created_at,
+                updated_at: row.updated_at,
+              };
+              setItems((prev) => {
+                if (prev.some((i) => i.id === newItem.id)) return prev;
+                return [...prev, newItem];
+              });
+            }
+          } else if (payload.eventType === "DELETE") {
+            const deletedId = (payload.old as { id: string }).id;
+            setItems((prev) => prev.filter((i) => i.id !== deletedId));
+            setSelectedItemId((prev) => (prev === deletedId ? null : prev));
+            if (selectedItemId === deletedId) setDrawerOpen(false);
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Filtering ──────────────────────────────
   const filtered = useMemo(() => {
@@ -57,13 +138,13 @@ export function DashboardClient({ initialItems }: DashboardClientProps) {
 
   // ── Handlers ───────────────────────────────
   const openDrawer = useCallback((item: RoadmapItem) => {
-    setSelectedItem(item);
+    setSelectedItemId(item.id);
     setDrawerOpen(true);
   }, []);
 
   const closeDrawer = useCallback(() => {
     setDrawerOpen(false);
-    setTimeout(() => setSelectedItem(null), 300);
+    setTimeout(() => setSelectedItemId(null), 300);
   }, []);
 
   const handleStatusChange = useCallback(
@@ -77,20 +158,17 @@ export function DashboardClient({ initialItems }: DashboardClientProps) {
         ),
       );
 
-      // Server action
+      // Server action (realtime will confirm the update)
       startTransition(async () => {
         await setStatusAction(itemId, newStatus);
-        router.refresh();
       });
     },
-    [router],
+    [],
   );
 
   const handleDrawerClose = useCallback(() => {
     closeDrawer();
-    // Refresh to pick up new comments
-    router.refresh();
-  }, [closeDrawer, router]);
+  }, [closeDrawer]);
 
   // ── Render ─────────────────────────────────
   return (
