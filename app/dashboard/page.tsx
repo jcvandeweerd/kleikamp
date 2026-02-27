@@ -23,16 +23,16 @@ export default async function DashboardPage() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
       {/* ── Header ─────────────────────────── */}
-      <header className="mb-6 flex items-start justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <span className="text-3xl" aria-hidden>
+      <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="text-3xl shrink-0" aria-hidden>
             🏡
           </span>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold tracking-tight sm:text-2xl truncate">
               Kleikamp 10 - Family App
             </h1>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-muted-foreground text-sm truncate">
               Ons nieuwe huis krijgt vorm - we bouwen dit samen! 💪
             </p>
           </div>
