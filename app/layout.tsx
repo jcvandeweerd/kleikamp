@@ -10,6 +10,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Kleikamp 10 · Family App",
   description: "Ons familiedashboard om samen ons droomhuis te bouwen.",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({

@@ -34,7 +34,7 @@ export function UserAvatar({ profile, size = "sm" }: UserAvatarProps) {
     .map((w) => w[0])
     .join("")
     .toUpperCase()
-    .slice(0, 2);
+    .slice(0, 1);
 
   return (
     <Avatar className={size === "sm" ? "h-6 w-6 text-[10px]" : "h-8 w-8 text-xs"}>
