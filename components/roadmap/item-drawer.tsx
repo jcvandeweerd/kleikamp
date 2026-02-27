@@ -114,8 +114,15 @@ export function ItemDrawer({ item, open, onClose }: ItemDrawerProps) {
         </SheetHeader>
 
         <div id="item-drawer-description" className="mt-4 space-y-5 px-4">
-          {/* Edit button */}
-          <div className="flex justify-end">
+          {/* Action buttons */}
+          <div className="flex justify-between">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+            >
+              ✕ Sluiten
+            </Button>
             <Button
               variant="outline"
               size="sm"

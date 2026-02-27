@@ -8,16 +8,19 @@ import { LoadingSkeleton } from "@/components/roadmap/loading-skeleton";
 import { SearchAndFilter } from "@/components/roadmap/search-and-filter";
 import { TimelineView } from "@/components/roadmap/timeline-view";
 import { ViewSwitcher } from "@/components/roadmap/view-switcher";
+import { Button } from "@/components/ui/button";
 import { setStatus as setStatusAction } from "@/lib/actions/roadmap";
 import { createBrowserClient } from "@/lib/supabase/client";
+import { useNotifications } from "@/lib/hooks/use-notifications";
 import type { RoadmapItem, Status, ViewMode } from "@/lib/types";
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 
 interface DashboardClientProps {
   initialItems: RoadmapItem[];
+  currentUserId?: string;
 }
 
-export function DashboardClient({ initialItems }: DashboardClientProps) {
+export function DashboardClient({ initialItems, currentUserId }: DashboardClientProps) {
   // ── State ──────────────────────────────────
   const [items, setItems] = useState(initialItems);
   const [view, setView] = useState<ViewMode>("timeline");
@@ -26,6 +29,7 @@ export function DashboardClient({ initialItems }: DashboardClientProps) {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const { notify, permission, requestPermission, isSupported } = useNotifications();
 
   // Derive selectedItem from the items array so it auto-updates
   const selectedItem = useMemo(
@@ -66,9 +70,17 @@ export function DashboardClient({ initialItems }: DashboardClientProps) {
                 };
               }),
             );
+            // Notify if changed by someone else
+            if (currentUserId && row.created_by !== currentUserId) {
+              notify("📝 Item bijgewerkt", {
+                body: row.title as string,
+                tag: `update-${row.id}`,
+              });
+            }
           } else if (payload.eventType === "INSERT") {
             // Fetch full item with profile join
             const newId = (payload.new as { id: string }).id;
+            const createdBy = (payload.new as { created_by: string }).created_by;
             const { data } = await supabase
               .from("roadmap_items")
               .select("*, profiles:created_by(id, name, surname, avatar_url)")
@@ -99,12 +111,27 @@ export function DashboardClient({ initialItems }: DashboardClientProps) {
                 if (prev.some((i) => i.id === newItem.id)) return prev;
                 return [...prev, newItem];
               });
+              // Notify if created by someone else
+              if (currentUserId && createdBy !== currentUserId) {
+                notify("✨ Nieuw item", {
+                  body: newItem.title,
+                  tag: `insert-${newItem.id}`,
+                });
+              }
             }
           } else if (payload.eventType === "DELETE") {
             const deletedId = (payload.old as { id: string }).id;
+            // Get title before removing for notification
+            const deletedTitle = items.find((i) => i.id === deletedId)?.title;
             setItems((prev) => prev.filter((i) => i.id !== deletedId));
             setSelectedItemId((prev) => (prev === deletedId ? null : prev));
             if (selectedItemId === deletedId) setDrawerOpen(false);
+            if (deletedTitle) {
+              notify("🗑️ Item verwijderd", {
+                body: deletedTitle,
+                tag: `delete-${deletedId}`,
+              });
+            }
           }
         },
       )
@@ -183,7 +210,30 @@ export function DashboardClient({ initialItems }: DashboardClientProps) {
             statusFilter={statusFilter}
             onStatusFilterChange={setStatusFilter}
           />
-          <AddItemDialog />
+          <div className="flex gap-2">
+            {isSupported && permission !== "granted" && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 shrink-0"
+                onClick={requestPermission}
+                title="Meldingen inschakelen"
+              >
+                🔔
+              </Button>
+            )}
+            {isSupported && permission === "granted" && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-9 shrink-0 pointer-events-none opacity-60"
+                title="Meldingen actief"
+              >
+                🔔
+              </Button>
+            )}
+            <AddItemDialog />
+          </div>
         </div>
       </div>
 

@@ -56,7 +56,7 @@ export default async function DashboardPage() {
       <Separator className="mb-8" />
 
       {/* ── Roadmap views ─────────────────── */}
-      <DashboardClient initialItems={items} />
+      <DashboardClient initialItems={items} currentUserId={profile?.id} />
     </main>
   );
 }
