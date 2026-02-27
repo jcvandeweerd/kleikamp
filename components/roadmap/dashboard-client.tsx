@@ -70,13 +70,11 @@ export function DashboardClient({ initialItems, currentUserId }: DashboardClient
                 };
               }),
             );
-            // Notify if changed by someone else
-            if (currentUserId && row.created_by !== currentUserId) {
-              notify("📝 Item bijgewerkt", {
-                body: row.title as string,
-                tag: `update-${row.id}`,
-              });
-            }
+            // Notify about the update
+            notify("📝 Item bijgewerkt", {
+              body: row.title as string,
+              tag: `update-${row.id}`,
+            });
           } else if (payload.eventType === "INSERT") {
             // Fetch full item with profile join
             const newId = (payload.new as { id: string }).id;
@@ -111,13 +109,11 @@ export function DashboardClient({ initialItems, currentUserId }: DashboardClient
                 if (prev.some((i) => i.id === newItem.id)) return prev;
                 return [...prev, newItem];
               });
-              // Notify if created by someone else
-              if (currentUserId && createdBy !== currentUserId) {
-                notify("✨ Nieuw item", {
-                  body: newItem.title,
-                  tag: `insert-${newItem.id}`,
-                });
-              }
+              // Notify about the new item
+              notify("✨ Nieuw item", {
+                body: newItem.title,
+                tag: `insert-${newItem.id}`,
+              });
             }
           } else if (payload.eventType === "DELETE") {
             const deletedId = (payload.old as { id: string }).id;

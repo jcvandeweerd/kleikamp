@@ -1,18 +1,20 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-type NotificationPermission = "default" | "granted" | "denied";
+type NotifPermission = "default" | "granted" | "denied";
 
 /**
  * Hook for browser notifications (desktop + mobile).
- * Returns permission state, a request function, and a notify function.
+ * Uses a ref internally so `notify` is stable and always reads the latest permission.
  */
 export function useNotifications() {
-  const [permission, setPermission] = useState<NotificationPermission>("default");
+  const [permission, setPermission] = useState<NotifPermission>("default");
+  const permissionRef = useRef<NotifPermission>("default");
 
   useEffect(() => {
     if (typeof window !== "undefined" && "Notification" in window) {
+      permissionRef.current = Notification.permission;
       setPermission(Notification.permission);
     }
   }, []);
@@ -20,13 +22,15 @@ export function useNotifications() {
   const requestPermission = useCallback(async () => {
     if (!("Notification" in window)) return "denied" as const;
     const result = await Notification.requestPermission();
+    permissionRef.current = result;
     setPermission(result);
     return result;
   }, []);
 
+  // Stable function — safe to use in effects without listing it as a dependency
   const notify = useCallback(
     (title: string, options?: NotificationOptions) => {
-      if (permission !== "granted") return;
+      if (permissionRef.current !== "granted") return;
       try {
         new Notification(title, {
           icon: "/icon.svg",
@@ -37,7 +41,7 @@ export function useNotifications() {
         // Safari / iOS may not support Notification constructor
       }
     },
-    [permission],
+    [], // stable — reads from ref
   );
 
   const isSupported = typeof window !== "undefined" && "Notification" in window;

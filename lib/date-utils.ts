@@ -1,21 +1,27 @@
 /** Simple date formatting helpers */
 
+const TZ = "Europe/Amsterdam";
+
 export function formatDate(iso: string): string {
   const d = new Date(iso);
   // If the value has a meaningful time component, show it
-  if (d.getHours() !== 0 || d.getMinutes() !== 0) {
+  const hours = d.toLocaleString("en-US", { hour: "numeric", hour12: false, timeZone: TZ });
+  const mins = d.toLocaleString("en-US", { minute: "numeric", timeZone: TZ });
+  if (Number(hours) !== 0 || Number(mins) !== 0) {
     return d.toLocaleDateString("nl-NL", {
       day: "numeric",
       month: "short",
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
+      timeZone: TZ,
     });
   }
   return d.toLocaleDateString("nl-NL", {
     day: "numeric",
     month: "short",
     year: "numeric",
+    timeZone: TZ,
   });
 }
 
@@ -27,6 +33,7 @@ export function formatDateTime(iso: string): string {
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: TZ,
   });
 }
 
@@ -40,13 +47,19 @@ export function localToISO(value: string | null): string | null {
 }
 
 /**
- * Converts an ISO timestamp to a datetime-local input value ("YYYY-MM-DDTHH:mm").
+ * Converts an ISO timestamp to a datetime-local input value ("YYYY-MM-DDTHH:mm")
+ * in Amsterdam time.
  */
 export function isoToLocal(iso: string | undefined | null): string {
   if (!iso) return "";
   const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", hour12: false,
+    timeZone: TZ,
+  }).formatToParts(d);
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "00";
+  return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`;
 }
 
 /**
