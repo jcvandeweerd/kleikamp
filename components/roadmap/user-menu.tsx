@@ -73,7 +73,7 @@ export function UserMenu({ name, surname, role }: UserMenuProps) {
               {initials}
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-64">
+          <SheetContent side="right" className="w-64" elevated>
             <SheetHeader>
               <SheetTitle className="text-left">{displayName}</SheetTitle>
             </SheetHeader>

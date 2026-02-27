@@ -83,6 +83,7 @@ export function EditItemDialog({ item, open, onOpenChange }: EditItemDialogProps
         side="right"
         className="w-full sm:max-w-md overflow-y-auto"
         aria-describedby="edit-item-description"
+        elevated
       >
         <SheetHeader>
           <SheetTitle>Item bewerken</SheetTitle>

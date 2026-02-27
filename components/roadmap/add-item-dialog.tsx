@@ -87,6 +87,7 @@ export function AddItemDialog() {
         side="right"
         className="w-full sm:max-w-md overflow-y-auto"
         aria-describedby="add-item-description"
+        elevated
       >
         <SheetHeader>
           <SheetTitle>Nieuw item toevoegen</SheetTitle>

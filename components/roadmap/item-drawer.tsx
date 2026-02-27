@@ -14,10 +14,10 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { formatDate, formatDateTime } from "@/lib/date-utils";
-import { addComment } from "@/lib/actions/roadmap";
+import { addComment, deleteItem } from "@/lib/actions/roadmap";
 import { createBrowserClient } from "@/lib/supabase/client";
 import type { Comment, RoadmapItem } from "@/lib/types";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 
 interface ItemDrawerProps {
   item: RoadmapItem | null;
@@ -96,6 +96,17 @@ export function ItemDrawer({ item, open, onClose }: ItemDrawerProps) {
   );
 
   const [editOpen, setEditOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [isDeleting, startDeleteTransition] = useTransition();
+
+  const handleDelete = useCallback(() => {
+    if (!item) return;
+    startDeleteTransition(async () => {
+      await deleteItem(item.id);
+      setConfirmDelete(false);
+      onClose();
+    });
+  }, [item, onClose]);
 
   if (!item) return null;
 
@@ -123,13 +134,34 @@ export function ItemDrawer({ item, open, onClose }: ItemDrawerProps) {
             >
               ✕ Sluiten
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setEditOpen(true)}
-            >
-              ✏️ Bewerken
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setEditOpen(true)}
+              >
+                ✏️ Bewerken
+              </Button>
+              {!confirmDelete ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  onClick={() => setConfirmDelete(true)}
+                >
+                  🗑️
+                </Button>
+              ) : (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={isDeleting}
+                  onClick={handleDelete}
+                >
+                  {isDeleting ? "Verwijderen…" : "Bevestig verwijderen"}
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Status & tags */}
